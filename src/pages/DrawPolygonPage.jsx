@@ -43,7 +43,7 @@ export default function DrawPolygonPage() {
 
     try {
       console.log("TEst")
-      await submitPolygon({ coordinates: path, area, perimeter })
+      await submitPolygon({ coordinates: path })
       alert('Polygon saved!')
     } catch (err) {
       console.error(err)

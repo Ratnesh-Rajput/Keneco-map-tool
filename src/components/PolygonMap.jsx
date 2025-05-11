@@ -8,14 +8,20 @@ const containerStyle = {
 }
 
 export default function PolygonMap({ polygon }) {
-  if (!polygon || polygon.length === 0) return null
+  if (!polygon || !polygon.coordinates || polygon.coordinates[0].length === 0) return null
 
-  const center = polygon[0]
+  // Convert GeoJSON coordinates to Google Maps format
+  const path = polygon.coordinates[0].map(coord => ({
+    lat: coord[1],
+    lng: coord[0]
+  }))
+
+  const center = path[0]
 
   return (
     <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={14}>
       <Polygon
-        path={polygon}
+        path={path}
         options={{
           fillColor: '#f87171',
           fillOpacity: 0.4,
@@ -28,10 +34,12 @@ export default function PolygonMap({ polygon }) {
 }
 
 PolygonMap.propTypes = {
-  polygon: PropTypes.arrayOf(
-    PropTypes.shape({
-      lat: PropTypes.number.isRequired,
-      lng: PropTypes.number.isRequired
-    })
-  ).isRequired
+  polygon: PropTypes.shape({
+    type: PropTypes.oneOf(['Polygon']).isRequired,
+    coordinates: PropTypes.arrayOf(
+      PropTypes.arrayOf(
+        PropTypes.arrayOf(PropTypes.number)
+      )
+    ).isRequired
+  }).isRequired
 }
