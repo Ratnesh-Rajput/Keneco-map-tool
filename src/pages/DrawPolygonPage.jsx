@@ -56,11 +56,11 @@ export default function DrawPolygonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] flex flex-col items-center px-4 py-6 w-screen md:px-10 lg:px-20">
-      <div className="w-full max-w-7xl flex flex-col gap-6">
+    <div className="min-h-screen bg-[#f4f5f7] flex flex-col overflow-x-hidden items-center px-4 py-6 w-screen md:px-10 lg:px-20">
+      <div className="w-full max-w-7xl flex flex-col gap-3">
         {/* Header */}
         <header className="w-full">
-          <h1 className="text-2xl md:text-3xl font-bold text-[#2f3e2e]">
+          <h1 className="!text-2xl !md:text-3xl font-bold text-[#2f3e2e]">
             Draw Polygon
           </h1>
         </header>
@@ -123,7 +123,7 @@ export default function DrawPolygonPage() {
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition duration-200"
+          className="px-6 py-2 bg-green-700 text-black rounded-md hover:bg-green-800 transition duration-200"
         >
           Submit Polygon
         </button>

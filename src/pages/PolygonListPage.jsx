@@ -2,6 +2,22 @@ import React, { useEffect, useState } from 'react'
 import { getPolygons } from '../api/Polygon'
 import PolygonMap from '../components/PolygonMap'
 
+// Helper function to parse WKT geometry
+const parseWKTGeometry = (wktString) => {
+  // Remove SRID prefix if present
+  const geometryString = wktString.replace('SRID=4326;', '')
+  // Extract coordinates from POLYGON ((...))
+  const coordsMatch = geometryString.match(/\(\((.*?)\)\)/)
+  if (!coordsMatch) return null
+  
+  const coords = coordsMatch[1].split(',').map(coord => {
+    const [lng, lat] = coord.trim().split(' ').map(Number)
+    return { lng, lat }
+  })
+  
+  return coords
+}
+
 export default function PolygonListPage() {
   const [polygons, setPolygons] = useState([])
   const [selected, setSelected] = useState(null)
@@ -10,7 +26,11 @@ export default function PolygonListPage() {
     const fetchPolygons = async () => {
       try {
         const res = await getPolygons()
-        setPolygons(res.data)
+        setPolygons(res)
+        // Set the first polygon as selected if there are any polygons
+        if (res.length > 0) {
+          setSelected(res[0])
+        }
       } catch (err) {
         console.error('Error fetching polygons:', err)
       }
@@ -20,16 +40,11 @@ export default function PolygonListPage() {
   }, [])
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#f8f8f8]">
-      {/* Header */}
-      <div className="bg-[#2f4a2f] text-white p-4 flex items-center">
-        <div className="font-bold text-xl ml-2"> KENECO</div>
-      </div>
-
+    <div className="h-screen w-screen flex flex-col bg-[#f8f8f8] overflow-hidden">
       {/* Main content */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left: List */}
-        <div className="w-full md:w-1/2 p-4 overflow-y-auto">
+        <div className="w-full md:w-1/2 p-4 overflow-hidden">
           <h2 className="text-lg font-semibold mb-4 text-gray-700">
             Find the new projects from the below list to send interest
           </h2>
@@ -37,11 +52,11 @@ export default function PolygonListPage() {
           {polygons.length === 0 ? (
             <p className="text-gray-500">No polygons saved yet.</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 m-5 overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-hide">
               {polygons.map((p) => (
                 <div
                   key={p.id}
-                  className={`flex border rounded-lg shadow-md bg-white overflow-hidden ${
+                  className={`flex border !m-5 rounded-lg shadow-md bg-white overflow-hidden ${
                     selected?.id === p.id ? 'border-green-500' : ''
                   }`}
                 >
@@ -49,19 +64,29 @@ export default function PolygonListPage() {
                   {/* <div className="w-32 h-32 bg-cover bg-center" style={{ backgroundImage: `url('/images/project.jpg')` }} /> */}
 
                   {/* Content */}
-                  <div className="flex-1 p-4">
-                    <h3 className="font-semibold text-lg mb-2">Project Ken Eco</h3>
-                    <div className="text-sm text-gray-600 mb-1"><strong>Land Restoration Type:</strong> Afforestation/Resforestation</div>
-                    <div className="text-sm text-gray-600 mb-1"><strong>Registry:</strong> Verra</div>
-                    <div className="text-sm text-gray-600 mb-1"><strong>Project Stage:</strong> Pre-feasibility</div>
-                    <div className="text-sm text-gray-600 mb-1"><strong>Size:</strong> {(p.area / 10000).toFixed(0)} ha</div>
-                    <div className="text-sm text-gray-600 mb-3"><strong>Location:</strong> India</div>
+                  <div className="flex-1 p-5 ">
+                   <div className="flex justify-between">
+                    <h3 className="font-semibold text-lg text-black !ml-2 !mt-1">Project Ken Eco</h3>
                     <button
                       onClick={() => setSelected(p)}
-                      className="px-4 py-1 bg-green-100 border border-green-600 text-green-800 rounded hover:bg-green-200"
+                      className="px-2 py-1 !m-2 bg-green-100 border border-green-600 text-green-800 rounded hover:bg-green-200"
                     >
                       Details
                     </button>
+                   </div>
+
+                    
+                    <div className="text-sm text-gray-600 !m-2">
+                      <strong>Size:</strong> {p.area.toFixed(2)} ha
+                    </div>
+                    <div className="text-sm text-gray-600 !m-2">
+                      <strong>Perimeter:</strong> {p.perimeter.toFixed(2)} m
+                    </div>
+                    <div className="text-sm text-gray-600 !m-2">
+                      <strong>Created:</strong> {new Date(p.created_at).toLocaleDateString()}
+                    </div>
+                    
+                    
                   </div>
                 </div>
               ))}
@@ -70,12 +95,12 @@ export default function PolygonListPage() {
         </div>
 
         {/* Right: Map */}
-        <div className="w-1/2 hidden md:block">
+        <div className="w-1/2 hidden md:block !mt-13">
           {selected && (
             <PolygonMap
               polygon={{
                 type: 'Polygon',
-                coordinates: [selected.coordinates.map((p) => [p.lng, p.lat])],
+                coordinates: [parseWKTGeometry(selected.geometry).map(({ lng, lat }) => [lng, lat])]
               }}
             />
           )}
